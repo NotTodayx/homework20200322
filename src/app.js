@@ -48,8 +48,10 @@ const asyncWriteFile = function(string, path) {
         return err
     })
 }
+
+
 //定义creatTask方法,SyntaxError: await is only valid in async function
-const creatTask = async (req, res) => {
+const createTask = async (req, res) => {
     const newTask = req.body
     const file = await asyncReadFile('./data.json')
     const tasks = JSON.parse(file)
@@ -61,7 +63,7 @@ const creatTask = async (req, res) => {
         res.status(200).send()
     }
 }
-app.post('/tasks', creatTask)
+app.post('/tasks', createTask)
 
 
 const updateTask = async (req, res) => {
@@ -72,7 +74,7 @@ const updateTask = async (req, res) => {
     if (candidates.length === 0) {
       this.createTask(req, res)
     } else {
-      tasks.forEach((value, index, array) => {
+        tasks.forEach((value, index, array) => {
         if (value.id === put.id) {
           array[index] = {
             ...value,
@@ -84,8 +86,21 @@ const updateTask = async (req, res) => {
       res.status(200).send()
     }
   }
-app.put("/accounts", updateTask)
-//app.delete("/accounts/:id", deleteTask)
+app.put("/tasks", updateTask)
+
+const deleteTask = async (req, res) => {
+    const id = req.params.id
+    const file = await asyncReadFile('./data.json')
+    const tasks = JSON.parse(file)
+    const newTask = tasks.filter(v => v.id !== id)
+    if(newTask.length === tasks.length){
+        res.status(404).send()
+    } else {
+        await asyncWriteFile(JSON.stringify(newTask), './data.json')
+        res.status(204).send()
+    }
+}
+app.delete("/tasks/:id", deleteTask)
 
 app.listen(port, () => console.log(`Our server has been setup,Example app listening on port ${port}!`))
 exports.app = app;
